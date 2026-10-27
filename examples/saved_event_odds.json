@@ -1,0 +1,76 @@
+[
+  {
+    "id": "source-event-001",
+    "sport_key": "basketball_nba",
+    "commence_time": "2030-01-15T20:00:00Z",
+    "home_team": "Example Home",
+    "away_team": "Example Away",
+    "bookmakers": [
+      {
+        "key": "draftkings",
+        "title": "DraftKings",
+        "markets": [
+          {
+            "key": "player_points",
+            "last_update": "2030-01-15T12:00:00Z",
+            "outcomes": [
+              {"name": "Over", "description": "A. Example", "price": -110, "point": 24.5},
+              {"name": "Under", "description": "A. Example", "price": -110, "point": 24.5}
+            ]
+          }
+        ]
+      },
+      {
+        "key": "fanduel",
+        "title": "FanDuel",
+        "markets": [
+          {
+            "key": "player_points",
+            "last_update": "2030-01-15T12:02:00Z",
+            "outcomes": [
+              {"name": "Over", "description": "Alex Example", "price": 120, "point": 24.5},
+              {"name": "Under", "description": "Alex Example", "price": -120, "point": 24.5}
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "source-event-002",
+    "sport_key": "americanfootball_nfl",
+    "commence_time": "2030-01-15T20:30:00Z",
+    "home_team": "Another Home",
+    "away_team": "Another Away",
+    "bookmakers": [
+      {
+        "key": "draftkings",
+        "title": "DraftKings",
+        "markets": [
+          {
+            "key": "player_reception_yds",
+            "last_update": "2030-01-15T12:01:00Z",
+            "outcomes": [
+              {"name": "Over", "description": "B. Example", "price": -110, "point": 48.5},
+              {"name": "Under", "description": "B. Example", "price": -110, "point": 48.5}
+            ]
+          }
+        ]
+      },
+      {
+        "key": "fanduel",
+        "title": "FanDuel",
+        "markets": [
+          {
+            "key": "player_reception_yds",
+            "last_update": "2030-01-15T12:03:00Z",
+            "outcomes": [
+              {"name": "Over", "description": "Blair Example", "price": -110, "point": 45.5},
+              {"name": "Under", "description": "Blair Example", "price": -110, "point": 45.5}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

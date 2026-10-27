@@ -2,6 +2,8 @@
 
 Every row represents one side of a pregame player-prop market from one book at one observation time. The adapter is read-only. CSV must be UTF-8 (a BOM is accepted), with one unique header for each field below and no extra columns. CSV quoting handles commas in names.
 
+Saved provider JSON can be converted into this schema using the [snapshot importer](snapshot-import.md). Import diagnostics and source provenance are written to a mandatory companion manifest; CSV analysis diagnostics refer to the normalized CSV.
+
 | Field | Meaning and constraints |
 | --- | --- |
 | `event_id` | Stable identifier shared across books; nonempty text |

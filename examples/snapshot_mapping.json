@@ -1,0 +1,28 @@
+{
+  "events": {
+    "source-event-001": "demo-001",
+    "source-event-002": "demo-002"
+  },
+  "players": {
+    "source-event-001": {
+      "A. Example": "Alex Example",
+      "Alex Example": "Alex Example"
+    },
+    "source-event-002": {
+      "B. Example": "Blair Example",
+      "Blair Example": "Blair Example"
+    }
+  },
+  "sports": {
+    "basketball_nba": "nba",
+    "americanfootball_nfl": "nfl"
+  },
+  "books": {
+    "draftkings": "Reference",
+    "fanduel": "Target"
+  },
+  "markets": {
+    "player_points": "player_points",
+    "player_reception_yds": "player_receiving_yards"
+  }
+}

@@ -39,10 +39,13 @@ Read the [complete example report](examples/report.md) to see the exclusions.
 - Selects eligible pregame snapshots and handles duplicates, conflicting prices, stale observations, and incomplete reference markets explicitly.
 - Compares identical event/player/market/line/side outcomes between one reference book and one target book.
 - Exports deterministic Markdown or JSON, including quote timestamps and diagnostic codes in JSON.
+- Imports saved provider JSON with explicit identity mappings and an audit manifest, preserving source update times.
 
 ```mermaid
 flowchart LR
     CSV[CSV snapshots] --> Validate[Validate schema and values]
+    JSON[Saved provider JSON and mappings] --> Import[Normalize and record provenance]
+    Import --> CSV
     Validate --> Select[Select eligible observations]
     Select --> Pair[Pair reference sides at the same line and time]
     Pair --> Compare[Compare matching target outcomes]
@@ -77,6 +80,26 @@ See the [schema and selection rules](docs/schema.md) before importing data. Keep
 
 The original project's CSVs intentionally do not match this schema. They lack the individual reference-side snapshots needed to reconstruct an exact paired market reliably. They are not bundled or silently converted.
 
+## Import a saved provider snapshot
+
+Version 0.2 adds a read-only importer for saved The Odds API v4 event-odds JSON. The included data is synthetic; no API key or live request is needed.
+
+```sh
+odds-analysis import-snapshot examples/saved_event_odds.json \
+  --mapping examples/snapshot_mapping.json \
+  --captured-at 2030-01-15T12:05:00Z \
+  --odds-format american \
+  --output reports/imported.csv
+
+odds-analysis reports/imported.csv --as-of 2030-01-15T12:05:00Z
+```
+
+This imports eight quotes and produces four comparisons: a qualifying gap, a matched quote below the threshold, and two different-line comparisons. [View the imported demo report](examples/imported-report.md).
+
+Each import also writes `reports/imported.csv.manifest.json` with source/mapping hashes, capture time, source JSON locations, and diagnostics. Price freshness uses each market's source update time, never the time the file was imported. Event, player, sport, book, and market aliases are supplied explicitly in the mapping file.
+
+Imports stop on diagnostics by default; `--allow-partial` explicitly exports accepted records with a complete diagnostic manifest. Existing outputs are never overwritten. See the [snapshot import guide](docs/snapshot-import.md) for the format, timestamp rules, and limitations.
+
 ## How the comparison works
 
 For positive American odds `a`, the implied probability is `100 / (a + 100)`. For negative odds it is `abs(a) / (abs(a) + 100)`.
@@ -93,7 +116,7 @@ For example, a -110/-110 reference pair becomes 50%/50% after proportional margi
 
 Reference probabilities are a modeling assumption about a market, not observed truth. A discrepancy between different thresholds is shown as `different_line`, with no probability gap. The tool does not place wagers, predict player performance, establish profitability, or implement a complete arbitrage strategy.
 
-Version 0.1 supports pregame, positive half-integer player-prop thresholds. Integer thresholds are rejected because push probabilities are not modeled. Probabilities from a single reference book do not constitute a calibrated outcome model. Curve fitting, multiple-reference consensus, and live read-only adapters are future work.
+The current version supports pregame, positive half-integer player-prop thresholds. Integer thresholds are rejected because push probabilities are not modeled. Probabilities from a single reference book do not constitute a calibrated outcome model. Curve fitting, multiple-reference consensus, and live read-only adapters are future work.
 
 ## Develop and test
 
@@ -102,7 +125,7 @@ python -m unittest discover -s tests -v
 python -m odds_analysis examples/synthetic_quotes.csv --as-of 2030-01-15T12:05:00Z --output reports/demo.md
 ```
 
-Tests cover known mathematical results, invalid inputs, identity matching, timestamp pairing, conflict handling, age boundaries, missing data, deterministic output, CLI failures, and the complete synthetic example. GitHub Actions is configured for Python 3.11–3.14; its remote runs begin after publication.
+Tests cover mathematical results, invalid inputs, identity matching, timestamp pairing, conflict handling, age boundaries, missing data, deterministic output, CLI failures, and synthetic examples. Import tests also cover provider structure, scoped aliases, source timestamps, partial imports, audit manifests, and input/output preservation. [GitHub Actions](https://github.com/samuelfrey98/odds-analysis/actions) runs the suite and installed CLI demos on Python 3.11–3.14.
 
 The initial 32-test suite passed locally on Python 3.12 and 3.14. A built wheel was installed into a fresh Python 3.14 virtual environment, where the same tests and the installed command-line demo passed without network access.
 
@@ -113,11 +136,13 @@ The runtime uses only Python's standard library. Packaging follows the [Python P
 ```text
 src/odds_analysis/
     adapters/csv_input.py   Strict, read-only CSV adapter
+    adapters/odds_api.py    Saved provider JSON normalization
     models.py              Validated quote records and diagnostics
     odds.py                Probability, devig, and conditional return math
     comparison.py          Snapshot selection and market comparison
     reporting.py           Markdown and JSON output
     cli.py                 Command-line entry point
+    import_cli.py          CSV export and import manifest
 tests/                     Standard-library unittest suite
 examples/                  Synthetic fixture and generated report
 docs/                      Schema, design decisions, and project origins

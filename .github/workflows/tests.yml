@@ -27,3 +27,7 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Exercise installed CLI
         run: odds-analysis examples/synthetic_quotes.csv --as-of 2030-01-15T12:05:00Z --format json --output reports/demo.json
+      - name: Import saved snapshot and analyze normalized quotes
+        run: |
+          odds-analysis import-snapshot examples/saved_event_odds.json --mapping examples/snapshot_mapping.json --captured-at 2030-01-15T12:05:00Z --odds-format american --output reports/imported.csv
+          odds-analysis reports/imported.csv --as-of 2030-01-15T12:05:00Z --format json --output reports/imported-analysis.json
