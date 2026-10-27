@@ -1,0 +1,29 @@
+event_id,event_start,observed_at,sport,player,market,line,side,book,american_odds
+consensus-001,2030-01-15T20:00:00Z,2030-01-15T12:00:00Z,nba,Alex Example,player_points,24.5,over,Reference A,-110
+consensus-001,2030-01-15T20:00:00Z,2030-01-15T12:00:00Z,nba,Alex Example,player_points,24.5,under,Reference A,-110
+consensus-001,2030-01-15T20:00:00Z,2030-01-15T12:01:00Z,nba,Alex Example,player_points,24.5,over,Reference B,-120
+consensus-001,2030-01-15T20:00:00Z,2030-01-15T12:01:00Z,nba,Alex Example,player_points,24.5,under,Reference B,100
+consensus-001,2030-01-15T20:00:00Z,2030-01-15T12:02:00Z,nba,Alex Example,player_points,24.5,over,Reference C,100
+consensus-001,2030-01-15T20:00:00Z,2030-01-15T12:02:00Z,nba,Alex Example,player_points,24.5,under,Reference C,-120
+consensus-001,2030-01-15T20:00:00Z,2030-01-15T12:03:00Z,nba,Alex Example,player_points,24.5,over,Target,120
+consensus-001,2030-01-15T20:00:00Z,2030-01-15T12:03:00Z,nba,Alex Example,player_points,24.5,under,Target,-120
+consensus-002,2030-01-15T20:30:00Z,2030-01-15T12:00:00Z,nba,Blair Example,player_points,28.5,over,Reference A,-110
+consensus-002,2030-01-15T20:30:00Z,2030-01-15T12:00:00Z,nba,Blair Example,player_points,28.5,under,Reference A,-110
+consensus-002,2030-01-15T20:30:00Z,2030-01-15T12:01:00Z,nba,Blair Example,player_points,28.5,over,Reference B,-200
+consensus-002,2030-01-15T20:30:00Z,2030-01-15T12:01:00Z,nba,Blair Example,player_points,28.5,under,Reference B,200
+consensus-002,2030-01-15T20:30:00Z,2030-01-15T12:02:00Z,nba,Blair Example,player_points,28.5,over,Reference C,-300
+consensus-002,2030-01-15T20:30:00Z,2030-01-15T12:02:00Z,nba,Blair Example,player_points,28.5,under,Reference C,300
+consensus-002,2030-01-15T20:30:00Z,2030-01-15T12:03:00Z,nba,Blair Example,player_points,28.5,over,Target,120
+consensus-003,2030-01-15T21:00:00Z,2030-01-15T12:00:00Z,nba,Casey Example,player_points,18.5,over,Reference A,-110
+consensus-003,2030-01-15T21:00:00Z,2030-01-15T12:00:00Z,nba,Casey Example,player_points,18.5,under,Reference A,-110
+consensus-003,2030-01-15T21:00:00Z,2030-01-15T11:00:00Z,nba,Casey Example,player_points,18.5,over,Reference B,-110
+consensus-003,2030-01-15T21:00:00Z,2030-01-15T11:00:00Z,nba,Casey Example,player_points,18.5,under,Reference B,-110
+consensus-003,2030-01-15T21:00:00Z,2030-01-15T12:02:00Z,nba,Casey Example,player_points,20.5,over,Reference C,-110
+consensus-003,2030-01-15T21:00:00Z,2030-01-15T12:02:00Z,nba,Casey Example,player_points,20.5,under,Reference C,-110
+consensus-003,2030-01-15T21:00:00Z,2030-01-15T12:03:00Z,nba,Casey Example,player_points,18.5,over,Target,120
+consensus-004,2030-01-15T21:30:00Z,2030-01-15T12:00:00Z,nba,Drew Example,player_points,12.5,over,Reference A,-110
+consensus-004,2030-01-15T21:30:00Z,2030-01-15T12:00:00Z,nba,Drew Example,player_points,12.5,under,Reference A,-110
+consensus-004,2030-01-15T21:30:00Z,2030-01-15T12:01:00Z,nba,Drew Example,player_points,12.5,over,Reference B,-120
+consensus-004,2030-01-15T21:30:00Z,2030-01-15T12:01:00Z,nba,Drew Example,player_points,12.5,under,Reference B,100
+consensus-004,2030-01-15T21:30:00Z,2030-01-15T12:02:00Z,nba,Drew Example,player_points,12.5,over,Reference C,-110
+consensus-004,2030-01-15T21:30:00Z,2030-01-15T12:03:00Z,nba,Drew Example,player_points,12.5,over,Target,120

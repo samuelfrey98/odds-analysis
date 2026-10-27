@@ -25,7 +25,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("input", type=Path, help="CSV using the documented quote schema")
     parser.add_argument("--as-of", required=True, help="Report time with UTC offset, e.g. 2024-01-25T12:05:00Z")
-    parser.add_argument("--reference-book", default="Reference")
+    parser.add_argument("--reference-book", action="append", help="Reference book; repeat for consensus (default: Reference)")
+    parser.add_argument("--min-reference-books", type=int, help="Minimum usable books (default: 1 for one configured book, otherwise 2)")
+    parser.add_argument("--max-disagreement-pp", default="10", help="Suppress signals above this reference probability range (default: 10)")
     parser.add_argument("--target-book", default="Target")
     parser.add_argument("--max-age-minutes", default="15")
     parser.add_argument("--min-gap-pp", default="2")
@@ -37,12 +39,14 @@ def main(argv: list[str] | None = None) -> int:
         as_of = utc_datetime(args.as_of)
         age = _finite(args.max_age_minutes, "Maximum quote age")
         threshold = _finite(args.min_gap_pp, "Minimum gap")
+        disagreement = _finite(args.max_disagreement_pp, "Maximum disagreement")
         if args.output and args.output.resolve() == args.input.resolve():
             raise ValueError("Output must not overwrite the input CSV")
         report = analyze(
             load_csv(args.input), as_of=as_of,
-            reference_book=args.reference_book, target_book=args.target_book,
+            reference_books=args.reference_book or ["Reference"], target_book=args.target_book,
             max_age=timedelta(minutes=age), min_gap_pp=threshold,
+            min_reference_books=args.min_reference_books, max_disagreement_pp=disagreement,
         )
         content = render_json(report) if args.format == "json" else render_markdown(report)
         if args.output:

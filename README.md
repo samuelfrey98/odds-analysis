@@ -37,7 +37,8 @@ Read the [complete example report](examples/report.md) to see the exclusions.
 - Converts American odds to probabilities and back, removes margin proportionally from paired outcomes, and provides conditional expected-return math.
 - Validates CSV records, normalizes timestamps to UTC, and distinguishes missing values from zero.
 - Selects eligible pregame snapshots and handles duplicates, conflicting prices, stale observations, and incomplete reference markets explicitly.
-- Compares identical event/player/market/line/side outcomes between one reference book and one target book.
+- Compares identical event/player/market/line/side outcomes across configured reference books and a target book.
+- Combines several reference books with an equal-book median and displays each contribution, exclusions, and disagreement.
 - Exports deterministic Markdown or JSON, including quote timestamps and diagnostic codes in JSON.
 - Imports saved provider JSON with explicit identity mappings and an audit manifest, preserving source update times.
 
@@ -114,9 +115,31 @@ gap_pp = 100 × (reference_p_for_side − target_implied_p)
 
 For example, a -110/-110 reference pair becomes 50%/50% after proportional margin removal. A +120 target price implies 45.45%, producing a +4.55 percentage-point gap against that reference. The default flag threshold is +2 percentage points. A nonpositive gap never receives a `gap` flag.
 
+With one reference book, this is the complete calculation. With several books, each book's complete pair is normalized separately, and the median of their probabilities becomes the reference estimate. See [the consensus method](docs/consensus.md) for the exact rules.
+
 Reference probabilities are a modeling assumption about a market, not observed truth. A discrepancy between different thresholds is shown as `different_line`, with no probability gap. The tool does not place wagers, predict player performance, establish profitability, or implement a complete arbitrage strategy.
 
-The current version supports pregame, positive half-integer player-prop thresholds. Integer thresholds are rejected because push probabilities are not modeled. Probabilities from a single reference book do not constitute a calibrated outcome model. Curve fitting, multiple-reference consensus, and live read-only adapters are future work.
+The current version supports pregame, positive half-integer player-prop thresholds. Integer thresholds are rejected because push probabilities are not modeled. Neither individual-book probabilities nor a multi-book consensus constitute a calibrated outcome model. Curve fitting and live read-only adapters are future work.
+
+## Compare several reference books
+
+Version 0.3 accepts repeated `--reference-book` options:
+
+```sh
+odds-analysis examples/consensus_quotes.csv \
+  --as-of 2030-01-15T12:05:00Z \
+  --reference-book 'Reference A' \
+  --reference-book 'Reference B' \
+  --reference-book 'Reference C' \
+  --min-reference-books 2 \
+  --max-disagreement-pp 10
+```
+
+The 28-row synthetic example produces five comparisons: two qualifying gaps, one matched quote below the flag threshold, one suppressed for disagreement, and one suppressed for too few usable references. [View the consensus report](examples/consensus-report.md), including each book's prices, probability, update time, and exclusion reasons.
+
+Every book gets one contribution from its latest eligible snapshot at the target threshold, which must contain a complete pair. The default minimum is two usable books when several are configured, or one for a single reference. A probability range above the configurable 10-percentage-point limit suppresses the gap; the median and evidence remain visible. These controls are transparent demonstration policies, not empirically calibrated reliability thresholds.
+
+Use `--format json` for unrounded probabilities and structured provenance. Analysis JSON now declares `schema_version: 2`; the original single-book CLI and `reference_book=` Python argument remain supported. The [consensus guide](docs/consensus.md) explains exclusions, even-count medians, and the limits of agreement.
 
 ## Develop and test
 
@@ -125,7 +148,7 @@ python -m unittest discover -s tests -v
 python -m odds_analysis examples/synthetic_quotes.csv --as-of 2030-01-15T12:05:00Z --output reports/demo.md
 ```
 
-Tests cover mathematical results, invalid inputs, identity matching, timestamp pairing, conflict handling, age boundaries, missing data, deterministic output, CLI failures, and synthetic examples. Import tests also cover provider structure, scoped aliases, source timestamps, partial imports, audit manifests, and input/output preservation. [GitHub Actions](https://github.com/samuelfrey98/odds-analysis/actions) runs the suite and installed CLI demos on Python 3.11–3.14.
+Tests cover mathematical results, invalid inputs, identity matching, timestamp pairing, conflict handling, age boundaries, missing data, deterministic output, CLI failures, and synthetic examples. Import tests cover provider structure, scoped aliases, source timestamps, partial imports, audit manifests, and input/output preservation. Consensus tests cover medians, complementary outcomes, unique book votes, quorum, disagreement boundaries, exclusions, and provenance. [GitHub Actions](https://github.com/samuelfrey98/odds-analysis/actions) runs the suite and installed CLI demos on Python 3.11–3.14.
 
 The initial 32-test suite passed locally on Python 3.12 and 3.14. A built wheel was installed into a fresh Python 3.14 virtual environment, where the same tests and the installed command-line demo passed without network access.
 
