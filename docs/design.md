@@ -18,9 +18,9 @@ The original 2023–2024 prototype combined desktop dialogs, Selenium table extr
 
 ## Next useful increments
 
-1. Add a read-only adapter for an authorized snapshot/feed source, with identity mapping and capture timestamps. Exercise it with saved fixtures before connecting a live source.
+1. Connect a live read-only source only after authorized data access and capture behavior are defined. Version 0.2 implements the offline prerequisite: saved The Odds API event-odds JSON, explicit identity mappings, source update times, and a capture/audit manifest, exercised with synthetic fixtures.
 2. Add a justified consensus method operating on compatible probability estimates, while retaining each book's provenance and excluding threshold mismatches.
 3. Revisit the old curve-fitting experiment as an optional module. Specify an objective, validate monotonicity and domains, and test recovery on known synthetic distributions before exposing predictions.
 4. Add outcome/settlement records and an event-level evaluation design if performance analysis becomes a goal. Candidate observations alone cannot establish ROI.
 
-Public repository naming, visibility, and licensing can be decided independently of this implementation. The project does not need a remote repository to run or be tested.
+The repository is private while development continues. Licensing and any future public release can be decided independently of this implementation.
