@@ -4,7 +4,7 @@ The original 2023–2024 prototype combined desktop dialogs, Selenium table extr
 
 ## Design decisions
 
-**Make the first useful path offline.** A synthetic fixture and explicit report time let someone reproduce the result without accounts or changing websites. A read-only CSV adapter is the first acquisition layer.
+**Make the first useful path offline.** Synthetic fixtures and explicit report times let someone reproduce results without accounts or changing websites. Version 0.4 adds a one-command seeded simulation: eight scripted snapshots, independent expected behaviors, and a replay report showing whether each expectation matched. The installed demo generates its own inputs and works outside the repository.
 
 **Separate responsibilities.** Validated records sit between adapters and analysis. Odds math has no file or UI dependencies. Reporting consumes a structured result rather than reaching into mutable global state. The only entry-point effects are argument parsing, reading an explicitly supplied file, and writing the requested report.
 
