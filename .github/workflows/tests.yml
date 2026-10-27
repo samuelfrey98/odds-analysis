@@ -31,3 +31,5 @@ jobs:
         run: |
           odds-analysis import-snapshot examples/saved_event_odds.json --mapping examples/snapshot_mapping.json --captured-at 2030-01-15T12:05:00Z --odds-format american --output reports/imported.csv
           odds-analysis reports/imported.csv --as-of 2030-01-15T12:05:00Z --format json --output reports/imported-analysis.json
+      - name: Exercise multi-book consensus CLI
+        run: odds-analysis examples/consensus_quotes.csv --as-of 2030-01-15T12:05:00Z --reference-book 'Reference A' --reference-book 'Reference B' --reference-book 'Reference C' --format json --output reports/consensus.json
