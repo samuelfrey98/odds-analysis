@@ -19,9 +19,12 @@ def main(argv: list[str] | None = None) -> int:
     if arguments and arguments[0] == "import-snapshot":
         from .import_cli import main as import_main
         return import_main(arguments[1:])
+    if arguments and arguments[0] in ("demo", "simulate", "replay"):
+        from .demo_cli import main as demo_main
+        return demo_main(arguments[0], arguments[1:])
     parser = argparse.ArgumentParser(
         description="Compare pregame odds snapshots from an offline CSV.",
-        epilog="Import saved provider JSON with: odds-analysis import-snapshot --help",
+        epilog="Offline demo: odds-analysis demo. Other commands: simulate, replay, import-snapshot (use --help).",
     )
     parser.add_argument("input", type=Path, help="CSV using the documented quote schema")
     parser.add_argument("--as-of", required=True, help="Report time with UTC offset, e.g. 2024-01-25T12:05:00Z")
