@@ -24,15 +24,15 @@ Text fields are stripped and internal whitespace is collapsed. Sport, market, an
 ## Selection order
 
 1. Reject a malformed header or CSV syntax as a file error. Record invalid rows as diagnostics; do not echo their raw values. A malformed-width row, missing price, zero odds, integer line, or naive timestamp is invalid.
-2. Select the configured reference and target book names. Other books are not analyzed.
+2. Select the configured reference books and target book. Other books are not analyzed. Repeated reference-book CLI options enable [multi-book consensus](consensus.md).
 3. Reject conflicting start times for an event ID within a sport. This conservative check uses all parsed rows for the selected books, even if an observation would later be stale or future-dated.
 4. Exclude observations after `as_of`, events starting at or before `as_of`, and quotes older than `max_age`. The exact maximum-age boundary is included.
 5. Deduplicate identical prices for an identity/timestamp, retaining the lowest source line number. If prices disagree at the same timestamp, exclude that quote identity across the eligible window instead of falling back to another price.
-6. For each reference market and line, select the latest remaining observation time. Both over and under must be present at that exact time. A newer incomplete snapshot invalidates that reference line; an older complete pair is not substituted. Source providers should assign a shared capture timestamp to both sides of a snapshot.
+6. For each reference book, market, and line, select the latest remaining observation time. Both over and under must be present at that exact time. A newer incomplete snapshot invalidates that book's reference line; an older complete pair is not substituted. Source providers should assign a shared capture timestamp to both sides of a snapshot.
 7. For each target identity, select its latest eligible observation. Compare only against a complete reference pair at its exact line. Reference and target observations can differ in time but both must fall inside the configured window.
 8. Sort comparisons and diagnostics consistently. No wall-clock time enters the result; `as_of` is explicit.
 
-No zero filling, line interpolation, cross-event matching, or automatic identity guessing occurs. The current comparison uses one reference book. If several complete reference lines exist, only an exact target threshold is used; the others are shown as context.
+No zero filling, line interpolation, cross-event matching, or automatic identity guessing occurs. Multiple reference books are normalized individually and combined using the median. If several complete reference lines exist, only an exact target threshold is used; the others are shown as context. Coverage and disagreement checks can suppress a signal; see the [consensus policy](consensus.md).
 
 ## Output
 
@@ -46,7 +46,9 @@ Markdown gives a compact comparison table and diagnostics. JSON includes the inp
 | `within_threshold` | Matched pair has no qualifying positive difference |
 | `different_line` | Reference has complete markets, but none at the target line |
 | `no_reference` | No complete eligible reference pair for this market |
+| `insufficient_references` | At least one matching pair exists, but fewer books than required; probability and gap are null |
+| `reference_disagreement` | Enough books, but range exceeds the configured limit; median is shown and gap is null |
 
 An empty or wholly rejected dataset produces a report with diagnostics and no comparisons. CLI exit code 0 means a report was generated; it does not mean all input rows were accepted. Callers should inspect counts and diagnostics. Invalid arguments, file/schema errors, and write failures return exit code 2. An output path resolving to the input CSV is rejected.
 
-For the Python API, `source_row=0` denotes a record without a CSV location. `Quote` validates values on construction; `analyze` accepts `LoadedQuotes` and explicit policy arguments. `expected_return(p, odds)` returns the net expectation per unit stake conditional on a supplied probability; it is not used to label market-comparison rows as validated opportunities.
+For the Python API, `source_row=0` denotes a record without a CSV location. `Quote` validates values on construction; `analyze` accepts `LoadedQuotes` and explicit policy arguments, including `reference_books` for consensus. Analysis JSON schema version 2 adds per-book contributions, exclusions, counts, and probability ranges while retaining the original comparison fields. `expected_return(p, odds)` returns the net expectation per unit stake conditional on a supplied probability; it is not used to label market-comparison rows as validated opportunities.
