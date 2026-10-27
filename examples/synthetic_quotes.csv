@@ -1,0 +1,20 @@
+event_id,event_start,observed_at,sport,player,market,line,side,book,american_odds
+demo-001,2030-01-15T20:00:00Z,2030-01-15T12:00:00Z,nba,Alex Example,player_points,24.5,over,Reference,-110
+demo-001,2030-01-15T20:00:00Z,2030-01-15T12:00:00Z,nba,Alex Example,player_points,24.5,under,Reference,-110
+demo-001,2030-01-15T20:00:00Z,2030-01-15T12:02:00Z,nba,Alex Example,player_points,24.5,over,Target,120
+demo-001,2030-01-15T20:00:00Z,2030-01-15T12:02:00Z,nba,Alex Example,player_points,24.5,under,Target,-120
+demo-001,2030-01-15T20:00:00Z,2030-01-15T12:02:00Z,nba,Alex Example,player_points,24.5,over,Target,120
+demo-001,2030-01-15T20:00:00Z,2030-01-15T11:58:00Z,nba,Alex Example,player_points,24.5,over,Target,-110
+demo-002,2030-01-15T20:30:00Z,2030-01-15T12:01:00Z,nfl,Blair Example,player_receiving_yards,48.5,over,Reference,-110
+demo-002,2030-01-15T20:30:00Z,2030-01-15T12:01:00Z,nfl,Blair Example,player_receiving_yards,48.5,under,Reference,-110
+demo-002,2030-01-15T20:30:00Z,2030-01-15T12:03:00Z,nfl,Blair Example,player_receiving_yards,45.5,over,Target,-110
+demo-003,2030-01-15T21:00:00Z,2030-01-15T11:00:00Z,nba,Casey Example,player_points,18.5,over,Reference,-110
+demo-003,2030-01-15T21:00:00Z,2030-01-15T11:00:00Z,nba,Casey Example,player_points,18.5,under,Reference,-110
+demo-003,2030-01-15T21:00:00Z,2030-01-15T11:00:00Z,nba,Casey Example,player_points,18.5,over,Target,120
+demo-004,2030-01-15T21:30:00Z,2030-01-15T12:00:00Z,nfl,Drew Example,player_rushing_yards,52.5,over,Reference,-110
+demo-004,2030-01-15T21:30:00Z,2030-01-15T12:00:00Z,nfl,Drew Example,player_rushing_yards,52.5,under,Reference,
+demo-004,2030-01-15T21:30:00Z,2030-01-15T12:03:00Z,nfl,Drew Example,player_rushing_yards,52.5,over,Target,120
+demo-001,2030-01-15T20:00:00Z,2030-01-15T12:10:00Z,nba,Alex Example,player_points,24.5,under,Target,200
+demo-005,2030-01-15T11:30:00Z,2030-01-15T11:00:00Z,nba,Ellis Example,player_points,12.5,over,Reference,-110
+demo-005,2030-01-15T11:30:00Z,2030-01-15T11:00:00Z,nba,Ellis Example,player_points,12.5,under,Reference,-110
+demo-005,2030-01-15T11:30:00Z,2030-01-15T11:10:00Z,nba,Ellis Example,player_points,12.5,over,Target,120
