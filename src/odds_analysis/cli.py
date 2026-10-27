@@ -15,7 +15,14 @@ from .reporting import render_json, render_markdown
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Compare pregame odds snapshots from an offline CSV.")
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    if arguments and arguments[0] == "import-snapshot":
+        from .import_cli import main as import_main
+        return import_main(arguments[1:])
+    parser = argparse.ArgumentParser(
+        description="Compare pregame odds snapshots from an offline CSV.",
+        epilog="Import saved provider JSON with: odds-analysis import-snapshot --help",
+    )
     parser.add_argument("input", type=Path, help="CSV using the documented quote schema")
     parser.add_argument("--as-of", required=True, help="Report time with UTC offset, e.g. 2024-01-25T12:05:00Z")
     parser.add_argument("--reference-book", default="Reference")
@@ -25,7 +32,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
     parser.add_argument("--output", type=Path, help="Write to a file; otherwise print to stdout")
     parser.add_argument("--version", action="version", version=__version__)
-    args = parser.parse_args(argv)
+    args = parser.parse_args(arguments)
     try:
         as_of = utc_datetime(args.as_of)
         age = _finite(args.max_age_minutes, "Maximum quote age")
