@@ -1,6 +1,6 @@
 # Odds Analysis
 
-Turn player-prop market snapshots into an explainable comparison report. Run the included synthetic example offline, with no accounts, API keys, browser setup, or runtime dependencies.
+Turn player-prop market snapshots into an explainable comparison report. Generate and replay a simulated market offline, with no accounts, API keys, browser setup, or runtime dependencies.
 
 This project grew out of a Selenium/Tkinter sports-odds prototype. The remake focuses on validated inputs, reproducible analysis, and testable mathematics. [Read the redesign notes](docs/design.md).
 
@@ -12,13 +12,33 @@ Requires Python 3.11 or newer. From the project directory:
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e .
-odds-analysis examples/synthetic_quotes.csv --as-of 2030-01-15T12:05:00Z
+odds-analysis demo
 ```
+
+The demo creates eight snapshots and checks 24 expected comparisons plus eight diagnostic expectations. Open `reports/demo/replay/summary.md` for the timeline, expected versus observed results, and links to each market report. [Preview the default replay report](examples/replay-report.md).
+
+The scenarios show similar book prices, a lagging target price, stale references, reference recovery, different thresholds, missing sides, disagreement, and target convergence. Seeded price changes and a fixed simulation clock make the result reproducible. All players and quotes are invented; these checks demonstrate software behavior, not predictive accuracy or returns.
 
 On Windows, activate with `.venv\Scripts\Activate.ps1` in PowerShell. Installation may download the build tool; running the installed package requires no network access. To try it directly from source without installation:
 
 ```sh
-PYTHONPATH=src python3 -m odds_analysis examples/synthetic_quotes.csv --as-of 2030-01-15T12:05:00Z
+PYTHONPATH=src python3 -m odds_analysis demo
+```
+
+Each run requires a new output directory. For another seed, or to generate snapshots and replay them separately:
+
+```sh
+odds-analysis demo --seed 7 --output reports/demo-seed-7
+odds-analysis simulate --seed 42 --output reports/scenarios
+odds-analysis replay reports/scenarios
+```
+
+See the [simulation and replay guide](docs/simulation.md) for the bundle format, checks, and exit codes. The installed demo works from any directory.
+
+## Inspect a single snapshot
+
+```sh
+odds-analysis examples/synthetic_quotes.csv --as-of 2030-01-15T12:05:00Z
 ```
 
 The synthetic fixture contains 19 rows, including intentionally bad data. It produces four target comparisons, one qualifying positive gap, and ten diagnostics. The fixed report time makes the result reproducible regardless of today's date.
@@ -41,6 +61,7 @@ Read the [complete example report](examples/report.md) to see the exclusions.
 - Combines several reference books with an equal-book median and displays each contribution, exclusions, and disagreement.
 - Exports deterministic Markdown or JSON, including quote timestamps and diagnostic codes in JSON.
 - Imports saved provider JSON with explicit identity mappings and an audit manifest, preserving source update times.
+- Generates seeded scenario bundles and replays each snapshot against authored comparison and diagnostic expectations.
 
 ```mermaid
 flowchart LR
@@ -148,9 +169,7 @@ python -m unittest discover -s tests -v
 python -m odds_analysis examples/synthetic_quotes.csv --as-of 2030-01-15T12:05:00Z --output reports/demo.md
 ```
 
-Tests cover mathematical results, invalid inputs, identity matching, timestamp pairing, conflict handling, age boundaries, missing data, deterministic output, CLI failures, and synthetic examples. Import tests cover provider structure, scoped aliases, source timestamps, partial imports, audit manifests, and input/output preservation. Consensus tests cover medians, complementary outcomes, unique book votes, quorum, disagreement boundaries, exclusions, and provenance. [GitHub Actions](https://github.com/samuelfrey98/odds-analysis/actions) runs the suite and installed CLI demos on Python 3.11–3.14.
-
-The initial 32-test suite passed locally on Python 3.12 and 3.14. A built wheel was installed into a fresh Python 3.14 virtual environment, where the same tests and the installed command-line demo passed without network access.
+Tests cover mathematical results, invalid inputs, identity matching, timestamp pairing, conflict handling, age boundaries, missing data, deterministic output, CLI failures, and synthetic examples. Import tests cover provider structure, scoped aliases, source timestamps, partial imports, audit manifests, and input/output preservation. Consensus tests cover medians, complementary outcomes, unique book votes, quorum, disagreement boundaries, exclusions, and provenance. Replay tests check independent expectations, changed or missing quotes, frame isolation, deterministic seeds, bundle paths, malformed inputs, and output preservation. [GitHub Actions](https://github.com/samuelfrey98/odds-analysis/actions) runs the suite and installed CLI demos on Python 3.11–3.14, including the self-contained demo outside the checkout.
 
 The runtime uses only Python's standard library. Packaging follows the [Python Packaging User Guide](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/).
 
@@ -166,6 +185,9 @@ src/odds_analysis/
     reporting.py           Markdown and JSON output
     cli.py                 Command-line entry point
     import_cli.py          CSV export and import manifest
+    simulation.py          Seeded, scripted snapshot generation
+    replay.py              Snapshot replay and expected-behavior reports
+    demo_cli.py            Offline demo, simulate, and replay commands
 tests/                     Standard-library unittest suite
 examples/                  Synthetic fixture and generated report
 docs/                      Schema, design decisions, and project origins
