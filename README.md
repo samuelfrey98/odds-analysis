@@ -1,137 +1,124 @@
 # Odds Analysis
 
-Turn player-prop market snapshots into an explainable comparison report. Generate and replay a simulated market offline, with no accounts, API keys, browser setup, or runtime dependencies.
+[![Tests](https://github.com/samuelfrey98/odds-analysis/actions/workflows/tests.yml/badge.svg)](https://github.com/samuelfrey98/odds-analysis/actions/workflows/tests.yml)
 
-This project grew out of a Selenium/Tkinter sports-odds prototype. The remake focuses on validated inputs, reproducible analysis, and testable mathematics. [Read the redesign notes](docs/design.md).
+**Explainable player-prop market comparisons, from a reproducible offline demo to a bounded live capture.** Python 3.11–3.14 · standard-library runtime · [MIT license](LICENSE).
 
-## Try the demo
+Sportsbook snapshots can disagree in price, threshold, or update time. This toolkit validates those observations, compares equivalent outcomes, and explains when a comparison is unsupported. Its reference estimate is the median of each book’s separately normalized probabilities.
 
-Requires Python 3.11 or newer. From the project directory:
+The project remakes an earlier Selenium/Tkinter prototype as a small Python package with explicit inputs, reproducible reports, and 125 automated tests. The original private source and account files are excluded. [Read the redesign story](docs/design.md).
+
+## Run the demo
+
+Clone the repository and install into a virtual environment:
 
 ```sh
+git clone https://github.com/samuelfrey98/odds-analysis.git
+cd odds-analysis
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -e .
+python -m pip install .
 odds-analysis demo
 ```
 
-The demo creates eight snapshots and checks 24 expected comparisons plus eight diagnostic expectations. Open `reports/demo/replay/summary.md` for the timeline, expected versus observed results, and links to each market report. [Preview the default replay report](examples/replay-report.md).
+On Windows, activate with `.venv\Scripts\Activate.ps1` in PowerShell. Installation may download build tooling. The installed demo works from any directory and uses no API key, network, or current-clock data.
 
-The scenarios show similar book prices, a lagging target price, stale references, reference recovery, different thresholds, missing sides, disagreement, and target convergence. Seeded price changes and a fixed simulation clock make the result reproducible. All players and quotes are invented; these checks demonstrate software behavior, not predictive accuracy or returns.
+Expected output:
 
-On Windows, activate with `.venv\Scripts\Activate.ps1` in PowerShell. Installation may download the build tool; running the installed package requires no network access. To try it directly from source without installation:
-
-```sh
-PYTHONPATH=src python3 -m odds_analysis demo
+```text
+PASS: 8 frames; 24/24 comparison checks; 8/8 diagnostic checks.
+  0: normal: PASS
+  1: target_lag: PASS
+  2: stale_references: PASS
+  3: reference_recovery: PASS
+  4: line_mismatch: PASS
+  5: missing_sides: PASS
+  6: reference_disagreement: PASS
+  7: target_converges: PASS
+Report: reports/demo/replay/summary.md
 ```
 
-Each run requires a new output directory. For another seed, or to generate snapshots and replay them separately:
+Open that report for the timeline, expected versus observed comparisons, and links to each detailed market report. [Preview the checked-in replay](examples/replay-report.md).
+
+The invented market moves through a lagging target price, stale references, recovery, different thresholds, incomplete pairs, disagreement, and convergence. Passing checks establish the authored software behavior; they do not measure prediction accuracy or profit.
+
+Every demo output directory must be new. Generate another run or replay its saved inputs:
 
 ```sh
-odds-analysis demo --seed 7 --output reports/demo-seed-7
-odds-analysis simulate --seed 42 --output reports/scenarios
+odds-analysis simulate --seed 7 --output reports/scenarios
 odds-analysis replay reports/scenarios
 ```
 
-See the [simulation and replay guide](docs/simulation.md) for the bundle format, checks, and exit codes. The installed demo works from any directory.
+To run from source without installation, use `PYTHONPATH=src python3 -m odds_analysis demo` on macOS/Linux. See the [simulation guide](docs/simulation.md) for seeds, bundle contents, and exit codes.
 
-## Inspect a single snapshot
+## What a report explains
+
+Each reference book needs a complete Over/Under pair at the target threshold and one shared source timestamp. The analyzer removes each pair’s margin proportionally before combining book probabilities. Prices from different thresholds stay distinct.
+
+For example, a -110/-110 reference becomes 50%/50% after normalization. A +120 target price implies 45.45%, leaving a +4.55 percentage-point gap. The default flag threshold is a positive gap of at least two percentage points.
+
+| Situation | Report behavior |
+| --- | --- |
+| Enough same-line references agree | Compare the median reference probability with the target price |
+| Fewer than the required references match | Show coverage and suppress the gap |
+| References exceed the disagreement limit | Show the median and evidence, but suppress the gap |
+| Thresholds differ | Show the lines without inferring a probability across them |
+| Observations are stale, future, conflicting, or incomplete | Exclude unsupported observations and explain why |
+
+With several references, the defaults require two usable books and suppress gaps above a ten-percentage-point probability range. These are demonstration policies, not calibrated reliability thresholds. Every report includes the contributing books, source times, exclusions, and diagnostics. [See the consensus method](docs/consensus.md).
+
+Try the smaller, deliberately imperfect CSV example:
 
 ```sh
 odds-analysis examples/synthetic_quotes.csv --as-of 2030-01-15T12:05:00Z
 ```
 
-The synthetic fixture contains 19 rows, including intentionally bad data. It produces four target comparisons, one qualifying positive gap, and ten diagnostics. The fixed report time makes the result reproducible regardless of today's date.
+[View its report](examples/report.md), or [the multi-book example](examples/consensus-report.md). Inputs and report times are fixed so these examples remain reproducible.
 
-| Player | Target quote | Reference probability | Target implied probability | Gap | Result |
-| --- | --- | ---: | ---: | ---: | --- |
-| Alex Example | Over 24.5 at +120 | 50.00% | 45.45% | +4.55 pp | `gap` |
-| Alex Example | Under 24.5 at -120 | 50.00% | 54.55% | -4.55 pp | `within_threshold` |
-| Blair Example | Over 45.5 at -110 | — | 52.38% | — | `different_line` |
-| Drew Example | Over 52.5 at +120 | — | 45.45% | — | `no_reference` |
-
-Read the [complete example report](examples/report.md) to see the exclusions.
-
-## What it does
-
-- Converts American odds to probabilities and back, removes margin proportionally from paired outcomes, and provides conditional expected-return math.
-- Validates CSV records, normalizes timestamps to UTC, and distinguishes missing values from zero.
-- Selects eligible pregame snapshots and handles duplicates, conflicting prices, stale observations, and incomplete reference markets explicitly.
-- Compares identical event/player/market/line/side outcomes across configured reference books and a target book.
-- Combines several reference books with an equal-book median and displays each contribution, exclusions, and disagreement.
-- Exports deterministic Markdown or JSON, including quote timestamps and diagnostic codes in JSON.
-- Imports saved provider JSON with explicit identity mappings and an audit manifest, preserving source update times.
-- Generates seeded scenario bundles and replays each snapshot against authored comparison and diagnostic expectations.
-- Captures one live NBA player-points event on explicit request, records credit usage, and runs the same import and analysis path.
+## Architecture
 
 ```mermaid
 flowchart LR
-    CSV[CSV snapshots] --> Validate[Validate schema and values]
-    JSON[Saved provider JSON and mappings] --> Import[Normalize and record provenance]
+    Sim[Seeded simulation] --> CSV[Quote CSV]
+    Saved[Saved provider JSON] --> Import[Identity mapping and provenance]
+    Live[Explicit manual capture] --> Saved
     Import --> CSV
-    Validate --> Select[Select eligible observations]
-    Select --> Pair[Pair reference sides at the same line and time]
-    Pair --> Compare[Compare matching target outcomes]
-    Compare --> Report[Markdown or JSON report]
+    CSV --> Validate[Validate and select eligible snapshots]
+    Validate --> Pair[Pair same-line reference outcomes]
+    Pair --> Consensus[Median consensus and coverage checks]
+    Consensus --> Report[Markdown and JSON with evidence]
     Validate --> Diagnostics[Diagnostics]
-    Select --> Diagnostics
     Pair --> Diagnostics
     Diagnostics --> Report
 ```
 
-## Use your own snapshots
+| Layer | Responsibility |
+| --- | --- |
+| Adapters and models | Parse external data, validate values, preserve source timestamps |
+| Odds math | Convert prices, remove paired-side margin, calculate conditional returns |
+| Comparison | Select snapshots, pair outcomes, enforce coverage and disagreement policies |
+| Simulation and replay | Generate scripted inputs and check independent expectations |
+| Reporting and CLI | Export deterministic results and perform explicitly requested file/network operations |
 
-```sh
-odds-analysis private/quotes.csv \
-  --reference-book Reference \
-  --target-book Target \
-  --as-of 2030-01-15T12:05:00Z \
-  --max-age-minutes 15 \
-  --min-gap-pp 2 \
-  --format json \
-  --output reports/comparison.json
-```
+Separating these layers makes the math and data policies testable without browsers or a provider account. [Design decisions and future work](docs/design.md).
 
-Book names are exact after whitespace normalization. The CSV adapter accepts exactly these columns, in any order:
+## Commands and guides
 
-```csv
-event_id,event_start,observed_at,sport,player,market,line,side,book,american_odds
-demo-001,2030-01-15T20:00:00Z,2030-01-15T12:00:00Z,nba,Alex Example,player_points,24.5,over,Reference,-110
-```
+| Command | Purpose | Guide |
+| --- | --- | --- |
+| `demo` | Generate and replay all eight synthetic scenarios | [Simulation](docs/simulation.md) |
+| `simulate` / `replay` | Separate input generation from replay | [Simulation](docs/simulation.md) |
+| `odds-analysis INPUT.csv --as-of TIME` | Analyze a local quote snapshot | [CSV schema](docs/schema.md) |
+| `import-snapshot` | Normalize saved event-odds JSON using explicit aliases | [Snapshot import](docs/snapshot-import.md) |
+| `capture` | Manually fetch and analyze one upcoming NBA player-points market | [Live capture](docs/live-capture.md) |
 
-See the [schema and selection rules](docs/schema.md) before importing data. Keep local inputs under `private/` and generated reports under `reports/`; both are ignored by Git.
+Use `--help` on any command. Local analysis supports Markdown or JSON output. Save your own inputs under `private/` and generated reports under `reports/`; both are Git-ignored. The bundled examples are synthetic.
 
-The original project's CSVs intentionally do not match this schema. They lack the individual reference-side snapshots needed to reconstruct an exact paired market reliably. They are not bundled or silently converted.
+### Optional live capture
 
-## Import a saved provider snapshot
+Only `capture` reads `ODDS_API_KEY` or makes provider requests. It checks the event list and quota, then makes at most one odds request for one NBA event, `player_points`, and the US region. Quota metadata is saved, and failed requests are never automatically retried.
 
-Version 0.2 adds a read-only importer for saved The Odds API v4 event-odds JSON. The included data is synthetic; no API key or live request is needed.
-
-```sh
-odds-analysis import-snapshot examples/saved_event_odds.json \
-  --mapping examples/snapshot_mapping.json \
-  --captured-at 2030-01-15T12:05:00Z \
-  --odds-format american \
-  --output reports/imported.csv
-
-odds-analysis reports/imported.csv --as-of 2030-01-15T12:05:00Z
-```
-
-This imports eight quotes and produces four comparisons: a qualifying gap, a matched quote below the threshold, and two different-line comparisons. [View the imported demo report](examples/imported-report.md).
-
-Each import also writes `reports/imported.csv.manifest.json` with source/mapping hashes, capture time, source JSON locations, and diagnostics. Price freshness uses each market's source update time, never the time the file was imported. Event, player, sport, book, and market aliases are supplied explicitly in the mapping file.
-
-Imports stop on diagnostics by default; `--allow-partial` explicitly exports accepted records with a complete diagnostic manifest. Existing outputs are never overwritten. See the [snapshot import guide](docs/snapshot-import.md) for the format, timestamp rules, and limitations.
-
-## Capture one live event
-
-Version 0.5 adds an explicit manual command for NBA player points in the US region:
-
-```sh
-odds-analysis capture
-```
-
-Set `ODDS_API_KEY` in the local process environment first. The command does not accept a key argument or read a credential file. On macOS/Linux, enter the key without echo or a shell-history literal:
+On macOS/Linux, run these commands separately. After the first command, enter the key at the hidden input and press Enter:
 
 ```sh
 read -r -s ODDS_API_KEY
@@ -140,90 +127,26 @@ odds-analysis capture
 unset ODDS_API_KEY
 ```
 
-After the `read` command, paste the key and press Enter. Run the following commands separately. Provider API access is required only for `capture`; the demo and local-file analysis remain offline.
+The default target is `fanduel`; reference keys are `draftkings`, `betmgm`, and `betrivers`. The private bundle contains the response, exact-name mapping, normalized quotes, provenance, quota audit, and reports. Source update times determine freshness. [Read the capture guide](docs/live-capture.md) for account requirements, request cost, limitations, and failure behavior.
 
-Capture checks the event list and remaining quota, selects the earliest upcoming NBA event, and makes at most one odds request for `player_points` in `us`. The planned maximum cost is one credit under the provider's [documented event-odds pricing](https://the-odds-api.com/liveapi/guides/v4/#usage-quota-costs-4). The provider's returned quota headers are recorded; this client cannot enforce server-side billing. Requests are never retried automatically.
+A manual live acceptance check on 2026-10-28 imported 265 quotes and produced 22 comparisons: 14 within threshold and eight with insufficient same-line references. No qualifying gaps were found. Replaying the saved files reproduced the reports exactly. Real responses remain private and are excluded from the repository.
 
-The default comparison uses `fanduel` as target and `draftkings`, `betmgm`, and `betrivers` as illustrative references. They are source keys, with no claim of accuracy or independence. Override books or select a particular upcoming event:
+## Scope and limitations
 
-```sh
-odds-analysis capture --event-id YOUR_EVENT_ID \
-  --reference-book draftkings --reference-book betmgm \
-  --target-book fanduel --output private/my-capture
-```
-
-The new private bundle contains the saved response, an exact-name identity mapping, normalized CSV, import diagnostics, Markdown/JSON analysis reports, and a capture audit with quota metadata. Prices retain their source market update times, and analysis uses the capture time. Output directories must be inside `./private/` and must be new. No available market or target quotes is a visible result; the command does not keep fetching other games. See [the live capture guide](docs/live-capture.md) for failures, partial imports, credential handling, and reproducible local reanalysis.
-
-## How the comparison works
-
-For positive American odds `a`, the implied probability is `100 / (a + 100)`. For negative odds it is `abs(a) / (abs(a) + 100)`.
-
-For a complete reference pair at the same threshold and observation time:
-
-```text
-reference_over_p  = implied_over_p  / (implied_over_p + implied_under_p)
-reference_under_p = implied_under_p / (implied_over_p + implied_under_p)
-gap_pp = 100 × (reference_p_for_side − target_implied_p)
-```
-
-For example, a -110/-110 reference pair becomes 50%/50% after proportional margin removal. A +120 target price implies 45.45%, producing a +4.55 percentage-point gap against that reference. The default flag threshold is +2 percentage points. A nonpositive gap never receives a `gap` flag.
-
-With one reference book, this is the complete calculation. With several books, each book's complete pair is normalized separately, and the median of their probabilities becomes the reference estimate. See [the consensus method](docs/consensus.md) for the exact rules.
-
-Reference probabilities are a modeling assumption about a market, not observed truth. A discrepancy between different thresholds is shown as `different_line`, with no probability gap. The tool does not place wagers, predict player performance, establish profitability, or implement a complete arbitrage strategy.
-
-The current version supports pregame, positive half-integer player-prop thresholds. Integer thresholds are rejected because push probabilities are not modeled. Neither individual-book probabilities nor a multi-book consensus constitute a calibrated outcome model. Curve fitting and live read-only adapters are future work.
-
-## Compare several reference books
-
-Version 0.3 accepts repeated `--reference-book` options:
-
-```sh
-odds-analysis examples/consensus_quotes.csv \
-  --as-of 2030-01-15T12:05:00Z \
-  --reference-book 'Reference A' \
-  --reference-book 'Reference B' \
-  --reference-book 'Reference C' \
-  --min-reference-books 2 \
-  --max-disagreement-pp 10
-```
-
-The 28-row synthetic example produces five comparisons: two qualifying gaps, one matched quote below the flag threshold, one suppressed for disagreement, and one suppressed for too few usable references. [View the consensus report](examples/consensus-report.md), including each book's prices, probability, update time, and exclusion reasons.
-
-Every book gets one contribution from its latest eligible snapshot at the target threshold, which must contain a complete pair. The default minimum is two usable books when several are configured, or one for a single reference. A probability range above the configurable 10-percentage-point limit suppresses the gap; the median and evidence remain visible. These controls are transparent demonstration policies, not empirically calibrated reliability thresholds.
-
-Use `--format json` for unrounded probabilities and structured provenance. Analysis JSON now declares `schema_version: 2`; the original single-book CLI and `reference_book=` Python argument remain supported. The [consensus guide](docs/consensus.md) explains exclusions, even-count medians, and the limits of agreement.
+This toolkit supports pregame player props with positive half-integer thresholds. It does not model integer-line pushes, fit player-performance distributions, place wagers, or track settlement and returns. A book consensus is a comparison assumption rather than observed truth; a flagged discrepancy does not establish executable arbitrage or profitability. Wider data collection and outcome evaluation require separate design and validation.
 
 ## Develop and test
 
+After installation, run:
+
 ```sh
 python -m unittest discover -s tests -v
-python -m odds_analysis examples/synthetic_quotes.csv --as-of 2030-01-15T12:05:00Z --output reports/demo.md
 ```
 
-Tests cover mathematical results, invalid inputs, identity matching, timestamp pairing, conflict handling, age boundaries, missing data, deterministic output, CLI failures, and synthetic examples. Import tests cover provider structure, scoped aliases, source timestamps, partial imports, audit manifests, and input/output preservation. Consensus tests cover medians, complementary outcomes, unique book votes, quorum, disagreement boundaries, exclusions, and provenance. Replay tests check independent expectations, changed or missing quotes, frame isolation, deterministic seeds, bundle paths, malformed inputs, and output preservation. [GitHub Actions](https://github.com/samuelfrey98/odds-analysis/actions) runs the suite and installed CLI demos on Python 3.11–3.14, including the self-contained demo outside the checkout.
+The 125 tests cover math, malformed inputs, identity and timestamp matching, stale/conflicting/missing data, reference medians and exclusions, import provenance, replay isolation, CLI failures, and private capture behavior. Capture tests use a dummy key and injected transport. The suite and installed CLI examples run on Python 3.11–3.14 in [GitHub Actions](https://github.com/samuelfrey98/odds-analysis/actions), with no provider calls.
 
-Capture tests use a dummy key and injected transport to check quota guards, fixed request scope, failure auditing, credential redaction, private paths, source freshness, and partial imports without provider calls. The runtime uses only Python's standard library. Packaging follows the [Python Packaging User Guide](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/).
+Source lives under `src/odds_analysis/`; `tests/`, `examples/`, and `docs/` contain the suite, reproducible inputs/reports, and detailed guides. Packaging requires setuptools; the installed runtime has no third-party dependencies.
 
-## Project layout
+## License
 
-```text
-src/odds_analysis/
-    adapters/csv_input.py   Strict, read-only CSV adapter
-    adapters/odds_api.py    Saved provider JSON normalization
-    adapters/live_odds_api.py  Bounded manual HTTPS acquisition
-    models.py              Validated quote records and diagnostics
-    odds.py                Probability, devig, and conditional return math
-    comparison.py          Snapshot selection and market comparison
-    reporting.py           Markdown and JSON output
-    cli.py                 Command-line entry point
-    import_cli.py          CSV export and import manifest
-    simulation.py          Seeded, scripted snapshot generation
-    replay.py              Snapshot replay and expected-behavior reports
-    demo_cli.py            Offline demo, simulate, and replay commands
-    capture.py             Private capture, normalization, and analysis
-    capture_cli.py         Explicit manual live-capture command
-tests/                     Standard-library unittest suite
-examples/                  Synthetic fixture and generated report
-docs/                      Schema, design decisions, and project origins
-```
+[MIT](LICENSE), copyright 2026 Samuel Frey. See [the changelog](CHANGELOG.md) for the v0.5.0 release scope and development milestones.
