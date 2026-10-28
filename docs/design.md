@@ -18,7 +18,7 @@ The original 2023–2024 prototype combined desktop dialogs, Selenium table extr
 
 ## Next useful increments
 
-1. Connect a live read-only source only after authorized data access and capture behavior are defined. Version 0.2 implements the offline prerequisite: saved The Odds API event-odds JSON, explicit identity mappings, source update times, and a capture/audit manifest, exercised with synthetic fixtures.
+1. Expand acquisition only when the capture contract is clear. Version 0.5 adds a manual one-event NBA player-points capture, environment-only credentials, private storage, quota metadata, and no retries. It uses the existing offline importer and analyzer; every automated test remains offline. Other sports, markets, and scheduled capture need their own explicit scope and request budget.
 2. Evaluate consensus behavior against suitable outcome data before claiming predictive value. Version 0.3 implements the auditable offline calculation and synthetic cases, not a calibrated model.
 3. Revisit the old curve-fitting experiment as an optional module. Specify an objective, validate monotonicity and domains, and test recovery on known synthetic distributions before exposing predictions.
 4. Add outcome/settlement records and an event-level evaluation design if performance analysis becomes a goal. Candidate observations alone cannot establish ROI.
