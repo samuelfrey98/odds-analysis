@@ -6,7 +6,7 @@ The original 2023–2024 prototype combined desktop dialogs, Selenium table extr
 
 **Make the first useful path offline.** Synthetic fixtures and explicit report times let someone reproduce results without accounts or changing websites. Version 0.4 adds a one-command seeded simulation: eight scripted snapshots, independent expected behaviors, and a replay report showing whether each expectation matched. The installed demo generates its own inputs and works outside the repository.
 
-**Separate responsibilities.** Validated records sit between adapters and analysis. Odds math has no file or UI dependencies. Reporting consumes a structured result rather than reaching into mutable global state. The only entry-point effects are argument parsing, reading an explicitly supplied file, and writing the requested report.
+**Separate responsibilities.** Validated records sit between adapters and analysis. Odds math has no file or UI dependencies. Reporting consumes a structured result rather than reaching into mutable global state. Offline commands read local inputs and write requested outputs. Only the explicit `capture` command reads a provider credential or makes network requests.
 
 **Make uncertainty visible.** Missing values are rejected rather than filled with zero. Different thresholds remain different markets. A reference pair must be complete at a shared timestamp. Stale, future, conflicting, and incomplete observations produce diagnostic codes.
 
@@ -23,4 +23,4 @@ The original 2023–2024 prototype combined desktop dialogs, Selenium table extr
 3. Revisit the old curve-fitting experiment as an optional module. Specify an objective, validate monotonicity and domains, and test recovery on known synthetic distributions before exposing predictions.
 4. Add outcome/settlement records and an event-level evaluation design if performance analysis becomes a goal. Candidate observations alone cannot establish ROI.
 
-The repository is private while development continues. Licensing and any future public release can be decided independently of this implementation.
+The remake is MIT-licensed. Synthetic fixtures and the offline demo let reviewers reproduce the behavior without access to private captures or the original account files. The release scope and development milestones are recorded in the [changelog](../CHANGELOG.md).
