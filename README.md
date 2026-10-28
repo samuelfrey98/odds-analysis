@@ -62,6 +62,7 @@ Read the [complete example report](examples/report.md) to see the exclusions.
 - Exports deterministic Markdown or JSON, including quote timestamps and diagnostic codes in JSON.
 - Imports saved provider JSON with explicit identity mappings and an audit manifest, preserving source update times.
 - Generates seeded scenario bundles and replays each snapshot against authored comparison and diagnostic expectations.
+- Captures one live NBA player-points event on explicit request, records credit usage, and runs the same import and analysis path.
 
 ```mermaid
 flowchart LR
@@ -122,6 +123,37 @@ Each import also writes `reports/imported.csv.manifest.json` with source/mapping
 
 Imports stop on diagnostics by default; `--allow-partial` explicitly exports accepted records with a complete diagnostic manifest. Existing outputs are never overwritten. See the [snapshot import guide](docs/snapshot-import.md) for the format, timestamp rules, and limitations.
 
+## Capture one live event
+
+Version 0.5 adds an explicit manual command for NBA player points in the US region:
+
+```sh
+odds-analysis capture
+```
+
+Set `ODDS_API_KEY` in the local process environment first. The command does not accept a key argument or read a credential file. On macOS/Linux, enter the key without echo or a shell-history literal:
+
+```sh
+read -r -s ODDS_API_KEY
+export ODDS_API_KEY
+odds-analysis capture
+unset ODDS_API_KEY
+```
+
+After the `read` command, paste the key and press Enter. Run the following commands separately. Provider API access is required only for `capture`; the demo and local-file analysis remain offline.
+
+Capture checks the event list and remaining quota, selects the earliest upcoming NBA event, and makes at most one odds request for `player_points` in `us`. The planned maximum cost is one credit under the provider's [documented event-odds pricing](https://the-odds-api.com/liveapi/guides/v4/#usage-quota-costs-4). The provider's returned quota headers are recorded; this client cannot enforce server-side billing. Requests are never retried automatically.
+
+The default comparison uses `fanduel` as target and `draftkings`, `betmgm`, and `betrivers` as illustrative references. They are source keys, with no claim of accuracy or independence. Override books or select a particular upcoming event:
+
+```sh
+odds-analysis capture --event-id YOUR_EVENT_ID \
+  --reference-book draftkings --reference-book betmgm \
+  --target-book fanduel --output private/my-capture
+```
+
+The new private bundle contains the saved response, an exact-name identity mapping, normalized CSV, import diagnostics, Markdown/JSON analysis reports, and a capture audit with quota metadata. Prices retain their source market update times, and analysis uses the capture time. Output directories must be inside `./private/` and must be new. No available market or target quotes is a visible result; the command does not keep fetching other games. See [the live capture guide](docs/live-capture.md) for failures, partial imports, credential handling, and reproducible local reanalysis.
+
 ## How the comparison works
 
 For positive American odds `a`, the implied probability is `100 / (a + 100)`. For negative odds it is `abs(a) / (abs(a) + 100)`.
@@ -171,7 +203,7 @@ python -m odds_analysis examples/synthetic_quotes.csv --as-of 2030-01-15T12:05:0
 
 Tests cover mathematical results, invalid inputs, identity matching, timestamp pairing, conflict handling, age boundaries, missing data, deterministic output, CLI failures, and synthetic examples. Import tests cover provider structure, scoped aliases, source timestamps, partial imports, audit manifests, and input/output preservation. Consensus tests cover medians, complementary outcomes, unique book votes, quorum, disagreement boundaries, exclusions, and provenance. Replay tests check independent expectations, changed or missing quotes, frame isolation, deterministic seeds, bundle paths, malformed inputs, and output preservation. [GitHub Actions](https://github.com/samuelfrey98/odds-analysis/actions) runs the suite and installed CLI demos on Python 3.11–3.14, including the self-contained demo outside the checkout.
 
-The runtime uses only Python's standard library. Packaging follows the [Python Packaging User Guide](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/).
+Capture tests use a dummy key and injected transport to check quota guards, fixed request scope, failure auditing, credential redaction, private paths, source freshness, and partial imports without provider calls. The runtime uses only Python's standard library. Packaging follows the [Python Packaging User Guide](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/).
 
 ## Project layout
 
@@ -179,6 +211,7 @@ The runtime uses only Python's standard library. Packaging follows the [Python P
 src/odds_analysis/
     adapters/csv_input.py   Strict, read-only CSV adapter
     adapters/odds_api.py    Saved provider JSON normalization
+    adapters/live_odds_api.py  Bounded manual HTTPS acquisition
     models.py              Validated quote records and diagnostics
     odds.py                Probability, devig, and conditional return math
     comparison.py          Snapshot selection and market comparison
@@ -188,6 +221,8 @@ src/odds_analysis/
     simulation.py          Seeded, scripted snapshot generation
     replay.py              Snapshot replay and expected-behavior reports
     demo_cli.py            Offline demo, simulate, and replay commands
+    capture.py             Private capture, normalization, and analysis
+    capture_cli.py         Explicit manual live-capture command
 tests/                     Standard-library unittest suite
 examples/                  Synthetic fixture and generated report
 docs/                      Schema, design decisions, and project origins
