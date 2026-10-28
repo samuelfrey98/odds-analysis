@@ -15,7 +15,7 @@ outcome: name, description, price, point
 
 `description` supplies the player alias, `name` supplies Over/Under, and `point` supplies the threshold. Source [market identifiers](https://the-odds-api.com/sports-odds-data/betting-markets.html) are mapped to the toolkit's canonical identifiers. Save prices in American format and declare `--odds-format american`; the adapter does not guess or convert decimal odds. This implementation requires market-level `last_update` and does not substitute bookmaker-level update time.
 
-This is an offline format adapter, not a live provider integration. It does not support historical response wrappers, arbitrary HTML, moneylines, spreads, or integer/push thresholds. If collecting your own authorized data, save the JSON response body without credential-bearing request URLs, and record its capture timestamp separately. No account or purchase is required for the included example.
+This adapter reads local files. The separate [manual capture command](live-capture.md) can acquire one supported live event. The importer does not support historical response wrappers, arbitrary HTML, moneylines, spreads, or integer/push thresholds. If collecting your own authorized data, save the JSON response body without credential-bearing request URLs, and record its capture timestamp separately. No account or purchase is required for the included example.
 
 ## Explicit mapping
 

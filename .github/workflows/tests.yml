@@ -36,3 +36,5 @@ jobs:
       - name: Run self-contained simulation outside the checkout
         working-directory: ${{ runner.temp }}
         run: odds-analysis demo --output odds-analysis-demo
+      - name: Check installed capture command without network
+        run: odds-analysis capture --help

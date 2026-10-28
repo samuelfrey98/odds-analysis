@@ -1,4 +1,4 @@
-"""Command-line entry point; no network or account configuration required."""
+"""Offline analysis by default; live requests require the explicit capture command."""
 
 import argparse
 import csv
@@ -16,6 +16,9 @@ from .reporting import render_json, render_markdown
 
 def main(argv: list[str] | None = None) -> int:
     arguments = list(sys.argv[1:] if argv is None else argv)
+    if arguments and arguments[0] == "capture":
+        from .capture_cli import main as capture_main
+        return capture_main(arguments[1:])
     if arguments and arguments[0] == "import-snapshot":
         from .import_cli import main as import_main
         return import_main(arguments[1:])
@@ -24,7 +27,7 @@ def main(argv: list[str] | None = None) -> int:
         return demo_main(arguments[0], arguments[1:])
     parser = argparse.ArgumentParser(
         description="Compare pregame odds snapshots from an offline CSV.",
-        epilog="Offline demo: odds-analysis demo. Other commands: simulate, replay, import-snapshot (use --help).",
+        epilog="Offline demo: odds-analysis demo. Other commands: simulate, replay, import-snapshot, capture (use --help).",
     )
     parser.add_argument("input", type=Path, help="CSV using the documented quote schema")
     parser.add_argument("--as-of", required=True, help="Report time with UTC offset, e.g. 2024-01-25T12:05:00Z")
